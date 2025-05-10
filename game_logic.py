@@ -272,9 +272,7 @@ class Enemy(Entity):
     """
     def __init__(self, player, game_ref, **kwargs) -> None: 
         """
-        initializes the fish enemy with its model, collider, and scale, whilst also handling any additional args, 
-
-        PS: This is why game over always instantly happens, i dont have enough time to fix it but they can sometimes spawn at 0,0,0 or nearby and instanly collide with the monument and end the game
+        initializes the fish enemy with its model, collider, and scale, whilst also handling any additional args
         """
         super().__init__(model = "fish.glb", collider = "box", scale = .005, **kwargs)
         while True: 
