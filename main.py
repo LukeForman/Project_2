@@ -1,6 +1,6 @@
 from game_logic import *
 
-app = Ursina(title = "Fish Fighter", borderless = True, fullscreen = True)
+app = Ursina(title = "Fish Fighter")
 
 my_game = Game()
 

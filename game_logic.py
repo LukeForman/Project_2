@@ -15,7 +15,7 @@ class Game():
         self.current_player = None
         self.monument = None
         self.enemies = []
-        self.health = 50
+        self.health = 3
         self.health_display_text = None
         self.score = 0
         self.high_score = 0 
@@ -44,7 +44,7 @@ class Game():
         """
         scene.clear()
         self.set_state("game")
-        self.health = 50
+        self.health = 3
         self.score = 0
         self.create_world()
         window.exit_button.enabled = False
@@ -151,6 +151,12 @@ class Game():
             return
         self.score += amount
         self.update_score_display()
+        if self.score == 100 and self.health == 3: 
+            self.game_won()
+        elif self.score == 99 and self.health == 2: 
+            self.game_won() 
+        elif self.score == 98 and self.health == 1: 
+            self.game_won()    
 
     def game_over(self) -> None:
         """
@@ -169,6 +175,23 @@ class Game():
         Text(text = "GameOver", scale = 10, position = (-.65, .325), color = color.red, parent = camera.ui)
         Button(texture = "Ret", color=color.white, scale = .35, position=(0,-.2), highlight_color=color.light_gray, parent = camera.ui, on_click = self.start_screen)
    
+    def game_won(self) -> None: 
+        """
+        Same logic as game over but different text that says WINNER!, only if greater than 97 score 
+        """
+        if self.current_player:
+            self.current_player.disable()
+        if self.current_sword:
+            self.current_sword.disable()
+        for enemy in self.enemies:
+            if enemy and enemy.enabled:
+                destroy(enemy)
+        self.enemies.clear()
+        if self.score > self.high_score:
+            self.high_score = self.score
+        Text(text = "WINNER", scale = 10, position = (-.45, .325), color = color.green, parent = camera.ui)
+        Button(texture = "Ret", color=color.white, scale = .35, position=(0, -.2), highlight_color=color.light_gray, parent = camera.ui, on_click = self.start_screen)
+
 class Player(FirstPersonController):
     """
     This class is not really needed, but the default one actually did not include sprinting (i guess i dident need it in the end either), also handles the escape key to close application
@@ -247,15 +270,22 @@ class Enemy(Entity):
     """
     Arguments are similar to the last two classes, creates a enemy that is a fish model, gives it a random x and z posiotion, and aditionally hadles the logic for moving towards 0,3,0 (cords of monument)
     """
-    def __init__(self, player, game_ref, speed = .67, **kwargs) -> None: 
+    def __init__(self, player, game_ref, **kwargs) -> None: 
         """
         initializes the fish enemy with its model, collider, and scale, whilst also handling any additional args, 
 
         PS: This is why game over always instantly happens, i dont have enough time to fix it but they can sometimes spawn at 0,0,0 or nearby and instanly collide with the monument and end the game
         """
         super().__init__(model = "fish.glb", collider = "box", scale = .005, **kwargs)
-        self.position = Vec3(randrange(-50, 50), 2.5, randrange(-50, 50))
-        self.speed = speed
+        while True: 
+            random_x = randrange(-50, 50)
+            random_z = randrange(-50, 50)
+            if (-20 <= random_x <= 20) and (-20 <= random_z <= 20): 
+                continue
+            else: 
+                break
+        self.position = Vec3(random_x, 2.5, random_z)
+        self.speed = random() * 5
         self.player_entity = player 
         self.game = game_ref
 
@@ -270,7 +300,7 @@ class Enemy(Entity):
             self.look_at(target_position) 
             if direction_to_target.length() > 0: 
                 self.position += direction_to_target.normalized() * self.speed * time.dt
-        hit_info = self.intersects()
+        hit_info = self.intersects(self.game.monument)
         if hit_info.hit:
             destroy(self)
             self.game.minus_health()
